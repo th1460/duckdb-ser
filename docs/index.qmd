@@ -1,0 +1,228 @@
+---
+title: "R e duckdb"
+author: "Thiago Pires"
+format: 
+  revealjs:
+    theme: resources/scss/theme.scss
+    footer: "[github.com/th1460/duckdb-ser](https://github.com/th1460/duckdb-ser)"
+    title-slide-attributes:
+      data-background-image: resources/images/cover.gif
+      data-background-size: cover
+    width: 1600
+    height: 900
+execute: 
+  echo: true
+---
+
+# duckdb {background-color="#e8f4f8"}
+
+## Por que duckdb?
+
+\
+
+:::: columns 
+::: {.column width="50%"}
+
+### Simples
+
+- Embarcado
+- Sem dependências
+- APIs para R, Python, Julia, etc
+
+\
+
+### Rápido
+
+- Optimizado para análises
+- Processamento de consultas paralelas
+
+:::
+::: {.column width="50%"}
+
+### Rico em recursos
+
+- Amplo suporte ao SQL
+- Consulta direta em arquivos parquet e CSV
+
+\
+
+### Gratuíto
+
+- Código aberto e gratuito
+- Licença MIT
+
+:::
+::::
+
+# Simples {background-color="#e8f4f8"}
+
+## Instalação
+
+```{r}
+#| eval: false
+
+install.packages("duckdb") 
+```
+
+\
+
+### Versão
+
+```{r}
+packageVersion("duckdb")
+```
+
+# Rápido {background-color="#e8f4f8"}
+
+## Comparativo
+
+Exemplo [New York City Taxi Trip Duration](https://www.kaggle.com/competitions/nyc-taxi-trip-duration/data) (191Mb)
+
+```{r}
+#| eval: false
+
+# Usando R base e dplyr 
+system.time({
+  read.csv("../data/nyc-taxi.csv") |>
+    dplyr::mutate(month = lubridate::month(dropoff_datetime)) |>
+    dplyr::group_by(month) |>
+    dplyr::summarise(`Média (s)` = mean(trip_duration, na.rm = TRUE))
+})
+```
+
+```
+usuário   sistema decorrido 
+ 14.323     6.096    21.711 
+```
+
+```{r}
+#| eval: false
+
+# Usando duckdb e dplyr (dbplyr instalado)
+system.time({
+  con <- duckdb::dbConnect(duckdb::duckdb(), "../data/nyc-taxi.duckdb")
+  duckdb::duckdb_read_csv(con, "nyc-taxi", "../data/nyc-taxi.csv")
+  dplyr::tbl(con, "nyc-taxi") |>
+    dplyr::mutate(month = dplyr::sql("datepart('month', strptime(dropoff_datetime, '%Y-%m-%d %H:%M:%S'))")) |>
+    dplyr::group_by(month) |>
+    dplyr::summarise(`Média (s)` = mean(trip_duration, na.rm = TRUE))
+  duckdb::dbDisconnect(con, shutdown = TRUE)
+})
+```
+
+```
+usuário   sistema decorrido 
+  2.024     0.145     2.331
+```
+
+# Recursos {background-color="#e8f4f8"}
+
+## Tipos de dado
+
+São [22 tipos de dados](https://duckdb.org/docs/sql/data_types/overview) suportados
+
+```{r}
+con <- 
+  duckdb::dbConnect(duckdb::duckdb(), 
+                    "../data/data_types.duckdb")
+
+dplyr::tibble(boolean = c(TRUE, TRUE, FALSE, TRUE),
+              double = c(-1.2, 5.65, 0.91, 100),
+              integer = c(3L, 20L, 0L, -2L),
+              timestamp = c("2023-04-01 12:13", "2023-05-30 01:45", 
+                            "2023-06-07 13:01", "2023-09-23 23:02") |> lubridate::ymd_hm(),
+              varchar = LETTERS[5:8]) |>
+  duckdb::dbWriteTable(con, "examples", value = _, overwrite = TRUE)
+
+dplyr::tbl(con, "examples")
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+## Tipos aninhados
+
+\
+
+São tipos `LIST`, `STRUCT` e `MAP`
+
+```{r}
+#| eval: false
+
+con <- duckdb::dbConnect(duckdb::duckdb(), "../data/data_types.duckdb")
+DBI::dbExecute(con, "CREATE TABLE NEST (int_list INT[], varchar_list VARCHAR[], struct STRUCT(i INT, j VARCHAR))")
+
+stmt <- DBI::dbSendStatement(con, "INSERT INTO NEST VALUES (?, ?, ?)")
+DBI::dbBind(stmt, list("[1, 2]", "['a', 'b']", "{'i': 5, 'j': 'c'}"))
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+\
+
+Fazendo consulta:
+
+```{r}
+con <- duckdb::dbConnect(duckdb::duckdb(), "../data/data_types.duckdb")
+dplyr::tbl(con, "nest")
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+## Leitura e escrita de arquivos em diferentes formatos
+
+- `csv`:
+
+```{r}
+#| eval: false
+
+con <- duckdb::dbConnect(duckdb::duckdb(), "../data/nyc-taxi.duckdb")
+duckdb::duckdb_read_csv(con, "nyc-taxi", "../data/nyc-taxi.csv")
+
+# Salvar em parquet
+DBI::dbExecute(con, "COPY 'nyc-taxi' TO '../data/nyc-taxi.parquet' (FORMAT PARQUET);")
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+- `parquet`:
+
+```{r}
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+DBI::dbGetQuery(con, "SELECT * FROM read_parquet('../data/nyc-taxi.parquet') LIMIT 2;") |> dplyr::as_tibble()
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+
+## Leitura e escrita de arquivos em diferentes formatos
+
+- `json`:
+
+```
+[
+  {"Name" : "Mario", "Age" : 32, "Occupation" : "Plumber"}, 
+  {"Name" : "Peach", "Age" : 21, "Occupation" : "Princess"},
+  {},
+  {"Name" : "Bowser", "Occupation" : "Koopa"}
+]
+```
+
+\
+
+```{r}
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+DBI::dbExecute(con, "INSTALL json;")
+DBI::dbExecute(con, "LOAD json;")
+DBI::dbGetQuery(con, "SELECT * FROM read_json_auto('../data/example.json')")
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+
+## Funções
+
+```{r}
+df <- data.frame(repo = c("th1460/duckdb-ser"))
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+
+# registra o df como uma tabela virtual
+duckdb::duckdb_register(con, "repos", df) 
+
+dplyr::tbl(con, "repos") |>
+  dplyr::mutate(extract = dplyr::sql("regexp_extract(repo, '[0-9]+')"))
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```

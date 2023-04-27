@@ -1,0 +1,4 @@
+.DS_Store
+nyc-taxi.duckdb
+nyc-taxi.csv
+nyc-taxi.parquet
