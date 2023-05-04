@@ -61,7 +61,11 @@ execute:
 ```{r}
 #| eval: false
 
+# Estável
 install.packages("duckdb") 
+
+# Desenvolvimento
+install.packages('duckdb', repos=c('https://duckdb.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 
 \
@@ -123,8 +127,7 @@ São [22 tipos de dados](https://duckdb.org/docs/sql/data_types/overview) suport
 
 ```{r}
 con <- 
-  duckdb::dbConnect(duckdb::duckdb(), 
-                    "../data/data_types.duckdb")
+  duckdb::dbConnect(duckdb::duckdb(), ":memory:")
 
 dplyr::tibble(boolean = c(TRUE, TRUE, FALSE, TRUE),
               double = c(-1.2, 5.65, 0.91, 100),
@@ -145,14 +148,11 @@ duckdb::dbDisconnect(con, shutdown = TRUE)
 São tipos `LIST`, `STRUCT` e `MAP`
 
 ```{r}
-#| eval: false
-
-con <- duckdb::dbConnect(duckdb::duckdb(), "../data/data_types.duckdb")
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
 DBI::dbExecute(con, "CREATE TABLE NEST (int_list INT[], varchar_list VARCHAR[], struct STRUCT(i INT, j VARCHAR))")
 
 stmt <- DBI::dbSendStatement(con, "INSERT INTO NEST VALUES (?, ?, ?)")
 DBI::dbBind(stmt, list("[1, 2]", "['a', 'b']", "{'i': 5, 'j': 'c'}"))
-duckdb::dbDisconnect(con, shutdown = TRUE)
 ```
 
 \
@@ -160,7 +160,6 @@ duckdb::dbDisconnect(con, shutdown = TRUE)
 Fazendo consulta:
 
 ```{r}
-con <- duckdb::dbConnect(duckdb::duckdb(), "../data/data_types.duckdb")
 dplyr::tbl(con, "nest")
 duckdb::dbDisconnect(con, shutdown = TRUE)
 ```
@@ -212,17 +211,202 @@ DBI::dbGetQuery(con, "SELECT * FROM read_json_auto('../data/example.json')")
 duckdb::dbDisconnect(con, shutdown = TRUE)
 ```
 
-
-## Funções
+## [Funções](https://duckdb.org/docs/sql/functions/overview)
 
 ```{r}
-df <- data.frame(repo = c("th1460/duckdb-ser"))
+df <- data.frame(repo = c("th1460/duckdb-ser"),
+                 start_date = c("1984-10-19") |> as.Date())
 con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
 
-# registra o df como uma tabela virtual
-duckdb::duckdb_register(con, "repos", df) 
+# Registra o df como uma tabela virtual (view)
+duckdb::duckdb_register(con, "functions", df) 
 
-dplyr::tbl(con, "repos") |>
-  dplyr::mutate(extract = dplyr::sql("regexp_extract(repo, '[0-9]+')"))
+dplyr::tbl(con, "functions") |>
+  dplyr::mutate(extract = dplyr::sql("regexp_extract(repo, '[0-9]+')"),
+                weeks = dplyr::sql("datediff('week', start_date, today())"),
+                pi = dplyr::sql("pi()"))
 duckdb::dbDisconnect(con, shutdown = TRUE)
 ```
+
+## Casos de uso: Text mining
+
+```{r}
+bible <- readr::read_lines(url("https://www.o-bible.com/download/kjv.txt"), skip = 1) |>
+  dplyr::as_tibble()
+
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+duckdb::duckdb_register(con, "bible", bible)
+(words <- dplyr::tbl(con, "bible") |>
+  dplyr::mutate(book = dplyr::sql("regexp_extract(regexp_extract(value, '\\w+\\d+\\:\\d+'), '[A-Za-z]+')"),
+                text = dplyr::sql("lcase(trim(regexp_replace(value, '\\w+\\d+\\:\\d+|\\;|\\,|\\.|\\:', '', 'g')))"),
+                word = dplyr::sql("regexp_split_to_array(text, '\\s')"),
+                word_clean = dplyr::sql("list_filter(word, x -> NOT regexp_matches(x, 'in|the|and'))")) |>
+  dplyr::select(book, text, word, word_clean) |> head(1) |> dplyr::as_tibble())
+
+words$word
+words$word_clean
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+## Casos de uso: Dados de COVID 19
+
+```{r}
+url <- "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"
+
+read.csv(url, stringsAsFactors = FALSE) |>
+  dplyr::as_tibble()
+```
+
+## Casos de uso: Dados de COVID 19
+
+```{r}
+#| eval: false
+
+# https://github.com/duckdb/duckdb/pull/6387 (0.8.0)
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+duckdb::duckdb_register(con, "covid19", read.csv(url, stringsAsFactors = FALSE))
+
+dplyr::tbl(con, dplyr::sql("(PIVOT_LONGER covid19 ON COLUMNS('X') INTO NAME date VALUE cumulate)")) |>
+  dplyr::select(country = Country.Region, date, cumulate) |>
+  dplyr::mutate(date = dplyr::sql("strptime(replace(date, 'X', ''), '%m.%d.%y')"),
+                value = cumulate - dplyr::lag(cumulate)) |>
+  dplyr::filter(date > "2020-02-23") |> head(3)
+  
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+```
+# Source:   SQL [3 x 4]
+# Database: DuckDB 0.7.2-dev2706 [root@Darwin 22.4.0:R 4.2.3/:memory:]
+  country     date                cumulate value
+  <chr>       <dttm>                 <int> <int>
+1 Afghanistan 2020-02-24 00:00:00        5     5
+2 Afghanistan 2020-02-25 00:00:00        5     0
+3 Afghanistan 2020-02-26 00:00:00        5     0
+```
+
+## Lendo dados do S3 (COS IBM)
+
+Neste exemplo será usado o *Cloud Object Storage* (COS) da IBM para armazenar um conjunto de dados em `parquet`.
+
+```{r}
+readRenviron(".Renviron")
+
+con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+DBI::dbExecute(con, "INSTALL httpfs;") 
+DBI::dbExecute(con, "LOAD httpfs;") 
+
+DBI::dbExecute(con, glue::glue("SET s3_region='{Sys.getenv('S3_REGION')}';"))
+DBI::dbExecute(con, glue::glue("SET s3_endpoint='{Sys.getenv('S3_ENDPOINT')}';"))
+DBI::dbExecute(con, glue::glue("SET s3_access_key_id='{Sys.getenv('S3_ACCESS_KEY_ID')}';"))
+DBI::dbExecute(con, glue::glue("SET s3_secret_access_key='{Sys.getenv('S3_SECRET_ACCESS_KEY')}';"))
+```
+
+## Lendo dados do S3 (COS IBM)
+
+```{r}
+dplyr::tbl(con, "s3://duckdb-ser/nyc-taxi.parquet")
+duckdb::dbDisconnect(con, shutdown = TRUE)
+```
+
+## Dados espaciais
+
+```{r}
+#| eval: false
+DBI::dbExecute(con, "INSTALL spatial;")
+DBI::dbExecute(con, "LOAD spatial;")
+
+nyc_taxi_spatial <- dplyr::tbl(con, "s3://duckdb-ser/nyc-taxi.parquet") |>
+  dplyr::mutate(pickup_point = dplyr::sql("ST_Transform(ST_Point(pickup_latitude, pickup_longitude), 'EPSG:4326', 'ESRI:102718')"),
+                dropoff_point = dplyr::sql("ST_Transform(ST_Point(dropoff_latitude, dropoff_longitude), 'EPSG:4326', 'ESRI:102718')"),
+                aerial_distance = dplyr::sql("ST_Distance(pickup_point, dropoff_point)/3280.84")) |> dplyr::as_tibble()
+
+nyc_taxi_spatial |> 
+  dplyr::select(pickup_longitude, pickup_latitude, dropoff_longitude, dropoff_latitude, aerial_distance) |> 
+  dplyr::slice(1) |>
+  tidyr::pivot_longer(tidyr::everything()) |> 
+  dplyr::mutate(value = tibble::num(value, digits = 5))
+```
+
+:::: columns
+::: {.column width="40%"}
+```
+# A tibble: 5 × 2
+  name                  value
+  <chr>             <num:.5!>
+1 pickup_longitude  -73.98215
+2 pickup_latitude    40.76794
+3 dropoff_longitude -73.96463
+4 dropoff_latitude   40.76560
+5 aerial_distance     1.50216
+```
+:::
+::: {.column width="60%"}
+```{r}
+#| echo: false
+
+leaflet::leaflet(height=300, width=800) |>
+  leaflet::setView(-73.9759986, 40.7669315, 14) |>
+  leaflet::addTiles() |>
+  leaflet::addMarkers(-73.98215, 40.76794, popup = "Pickup") |>
+  leaflet::addMarkers(-73.96463, 40.76560, popup = "Dropoff") |>
+  leaflet::addPolylines(c(-73.98215, -73.96463), c(40.76794, 40.76560))
+```
+::: 
+:::: 
+
+## Um banco embarcado
+
+### Exemplo de uma API com plumber
+
+```{r}
+#| eval: false
+
+
+#* Mostrar informações segundo ID
+#* @param id
+#* @get /info
+function(id) {
+    # Ler variáveis de ambiente
+    readRenviron("../.Renviron")
+
+    # Criar conexão com o banco
+    con <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+    invisible(DBI::dbExecute(con, "INSTALL httpfs;"))
+    invisible(DBI::dbExecute(con, "LOAD httpfs;"))
+    invisible(DBI::dbExecute(con, glue::glue("SET s3_region='{Sys.getenv('S3_REGION')}';")))
+    invisible(DBI::dbExecute(con, glue::glue("SET s3_endpoint='{Sys.getenv('S3_ENDPOINT')}';")))
+    invisible(DBI::dbExecute(con, glue::glue("SET s3_access_key_id='{Sys.getenv('S3_ACCESS_KEY_ID')}';")))
+    invisible(DBI::dbExecute(con, glue::glue("SET s3_secret_access_key='{Sys.getenv('S3_SECRET_ACCESS_KEY')}';")))
+
+    # Consulta
+    resposta <- dplyr::tbl(con, "s3://duckdb-ser/nyc-taxi.parquet") |>
+        dplyr::filter(id == input) |> dplyr::as_tibble() |> as.data.frame()
+
+    duckdb::dbDisconnect(con, shutdown = TRUE)
+
+    # Resultado
+    return(jsonlite::toJSON(resposta))
+}
+
+
+```
+
+## Um banco embarcado
+
+### Resposta da API
+
+```{r}
+httr::GET("http://127.0.0.1:5830/info?id=id2875421") |> 
+  httr::content() |> 
+  jsonlite::toJSON(auto_unbox = TRUE)
+```
+
+## Obrigado
+
+### Contato
+
+[th1460.github.io](https://th1460.github.io/)<br>
+[github.com/th1460](https://github.com/)<br>
+[medium.com/@thopr](https://medium.com/@thopr)<br>
+[linkedin.com/in/thop](https://www.linkedin.com/in/thop)<br><br>

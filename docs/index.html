@@ -384,6 +384,15 @@
       margin-right: 0; 
     }
   </style>
+  <script src="index_files/libs/htmlwidgets-1.6.2/htmlwidgets.js"></script>
+  <script src="index_files/libs/jquery-1.12.4/jquery.min.js"></script>
+  <link href="index_files/libs/leaflet-1.3.1/leaflet.css" rel="stylesheet">
+  <script src="index_files/libs/leaflet-1.3.1/leaflet.js"></script>
+  <link href="index_files/libs/leafletfix-1.0.0/leafletfix.css" rel="stylesheet">
+  <script src="index_files/libs/proj4-2.6.2/proj4.min.js"></script>
+  <script src="index_files/libs/Proj4Leaflet-1.0.1/proj4leaflet.js"></script>
+  <link href="index_files/libs/rstudio_leaflet-1.3.1/rstudio_leaflet.css" rel="stylesheet">
+  <script src="index_files/libs/leaflet-binding-2.1.2/leaflet.js"></script>
 </head>
 <body class="quarto-light">
   <div class="reveal">
@@ -449,7 +458,11 @@ Thiago Pires
 <section id="instalação" class="slide level2">
 <h2>Instalação</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">install.packages</span>(<span class="st">"duckdb"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># Estável</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">install.packages</span>(<span class="st">"duckdb"</span>) </span>
+<span id="cb1-3"><a href="#cb1-3"></a></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="co"># Desenvolvimento</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">install.packages</span>(<span class="st">'duckdb'</span>, <span class="at">repos=</span><span class="fu">c</span>(<span class="st">'https://duckdb.r-universe.dev'</span>, <span class="st">'https://cloud.r-project.org'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><br>
 </p>
@@ -505,21 +518,20 @@ Thiago Pires
 <p>São <a href="https://duckdb.org/docs/sql/data_types/overview">22 tipos de dados</a> suportados</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>con <span class="ot">&lt;-</span> </span>
-<span id="cb8-2"><a href="#cb8-2"></a>  duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), </span>
-<span id="cb8-3"><a href="#cb8-3"></a>                    <span class="st">"../data/data_types.duckdb"</span>)</span>
-<span id="cb8-4"><a href="#cb8-4"></a></span>
-<span id="cb8-5"><a href="#cb8-5"></a>dplyr<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">boolean =</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>),</span>
-<span id="cb8-6"><a href="#cb8-6"></a>              <span class="at">double =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.2</span>, <span class="fl">5.65</span>, <span class="fl">0.91</span>, <span class="dv">100</span>),</span>
-<span id="cb8-7"><a href="#cb8-7"></a>              <span class="at">integer =</span> <span class="fu">c</span>(3L, 20L, 0L, <span class="sc">-</span>2L),</span>
-<span id="cb8-8"><a href="#cb8-8"></a>              <span class="at">timestamp =</span> <span class="fu">c</span>(<span class="st">"2023-04-01 12:13"</span>, <span class="st">"2023-05-30 01:45"</span>, </span>
-<span id="cb8-9"><a href="#cb8-9"></a>                            <span class="st">"2023-06-07 13:01"</span>, <span class="st">"2023-09-23 23:02"</span>) <span class="sc">|&gt;</span> lubridate<span class="sc">::</span><span class="fu">ymd_hm</span>(),</span>
-<span id="cb8-10"><a href="#cb8-10"></a>              <span class="at">varchar =</span> LETTERS[<span class="dv">5</span><span class="sc">:</span><span class="dv">8</span>]) <span class="sc">|&gt;</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>  duckdb<span class="sc">::</span><span class="fu">dbWriteTable</span>(con, <span class="st">"examples"</span>, <span class="at">value =</span> _, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb8-12"><a href="#cb8-12"></a></span>
-<span id="cb8-13"><a href="#cb8-13"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"examples"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb8-2"><a href="#cb8-2"></a>  duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a>dplyr<span class="sc">::</span><span class="fu">tibble</span>(<span class="at">boolean =</span> <span class="fu">c</span>(<span class="cn">TRUE</span>, <span class="cn">TRUE</span>, <span class="cn">FALSE</span>, <span class="cn">TRUE</span>),</span>
+<span id="cb8-5"><a href="#cb8-5"></a>              <span class="at">double =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">1.2</span>, <span class="fl">5.65</span>, <span class="fl">0.91</span>, <span class="dv">100</span>),</span>
+<span id="cb8-6"><a href="#cb8-6"></a>              <span class="at">integer =</span> <span class="fu">c</span>(3L, 20L, 0L, <span class="sc">-</span>2L),</span>
+<span id="cb8-7"><a href="#cb8-7"></a>              <span class="at">timestamp =</span> <span class="fu">c</span>(<span class="st">"2023-04-01 12:13"</span>, <span class="st">"2023-05-30 01:45"</span>, </span>
+<span id="cb8-8"><a href="#cb8-8"></a>                            <span class="st">"2023-06-07 13:01"</span>, <span class="st">"2023-09-23 23:02"</span>) <span class="sc">|&gt;</span> lubridate<span class="sc">::</span><span class="fu">ymd_hm</span>(),</span>
+<span id="cb8-9"><a href="#cb8-9"></a>              <span class="at">varchar =</span> LETTERS[<span class="dv">5</span><span class="sc">:</span><span class="dv">8</span>]) <span class="sc">|&gt;</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a>  duckdb<span class="sc">::</span><span class="fu">dbWriteTable</span>(con, <span class="st">"examples"</span>, <span class="at">value =</span> _, <span class="at">overwrite =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb8-11"><a href="#cb8-11"></a></span>
+<span id="cb8-12"><a href="#cb8-12"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"examples"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># Source:   table&lt;examples&gt; [4 x 5]
-# Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/../data/data_types.duckdb]
+# Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/:memory:]
   boolean double integer timestamp           varchar
   &lt;lgl&gt;    &lt;dbl&gt;   &lt;int&gt; &lt;dttm&gt;              &lt;chr&gt;  
 1 TRUE     -1.2        3 2023-04-01 12:13:00 E      
@@ -536,27 +548,27 @@ Thiago Pires
 </p>
 <p>São tipos <code>LIST</code>, <code>STRUCT</code> e <code>MAP</code></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">"../data/data_types.duckdb"</span>)</span>
-<span id="cb11-2"><a href="#cb11-2"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"CREATE TABLE NEST (int_list INT[], varchar_list VARCHAR[], struct STRUCT(i INT, j VARCHAR))"</span>)</span>
-<span id="cb11-3"><a href="#cb11-3"></a></span>
-<span id="cb11-4"><a href="#cb11-4"></a>stmt <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbSendStatement</span>(con, <span class="st">"INSERT INTO NEST VALUES (?, ?, ?)"</span>)</span>
-<span id="cb11-5"><a href="#cb11-5"></a>DBI<span class="sc">::</span><span class="fu">dbBind</span>(stmt, <span class="fu">list</span>(<span class="st">"[1, 2]"</span>, <span class="st">"['a', 'b']"</span>, <span class="st">"{'i': 5, 'j': 'c'}"</span>))</span>
-<span id="cb11-6"><a href="#cb11-6"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"CREATE TABLE NEST (int_list INT[], varchar_list VARCHAR[], struct STRUCT(i INT, j VARCHAR))"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a>stmt <span class="ot">&lt;-</span> DBI<span class="sc">::</span><span class="fu">dbSendStatement</span>(con, <span class="st">"INSERT INTO NEST VALUES (?, ?, ?)"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a>DBI<span class="sc">::</span><span class="fu">dbBind</span>(stmt, <span class="fu">list</span>(<span class="st">"[1, 2]"</span>, <span class="st">"['a', 'b']"</span>, <span class="st">"{'i': 5, 'j': 'c'}"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p><br>
 </p>
 <p>Fazendo consulta:</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">"../data/data_types.duckdb"</span>)</span>
-<span id="cb12-2"><a href="#cb12-2"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"nest"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"nest"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># Source:   table&lt;nest&gt; [1 x 3]
-# Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/../data/data_types.duckdb]
+# Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/:memory:]
   int_list  varchar_list struct$i $j   
   &lt;list&gt;    &lt;list&gt;          &lt;int&gt; &lt;chr&gt;
 1 &lt;int [2]&gt; &lt;chr [2]&gt;           5 c    </code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="leitura-e-escrita-de-arquivos-em-diferentes-formatos" class="slide level2">
@@ -565,19 +577,19 @@ Thiago Pires
 <li><code>csv</code>:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">"../data/nyc-taxi.duckdb"</span>)</span>
-<span id="cb15-2"><a href="#cb15-2"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_read_csv</span>(con, <span class="st">"nyc-taxi"</span>, <span class="st">"../data/nyc-taxi.csv"</span>)</span>
-<span id="cb15-3"><a href="#cb15-3"></a></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="co"># Salvar em parquet</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"COPY 'nyc-taxi' TO '../data/nyc-taxi.parquet' (FORMAT PARQUET);"</span>)</span>
-<span id="cb15-6"><a href="#cb15-6"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">"../data/nyc-taxi.duckdb"</span>)</span>
+<span id="cb17-2"><a href="#cb17-2"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_read_csv</span>(con, <span class="st">"nyc-taxi"</span>, <span class="st">"../data/nyc-taxi.csv"</span>)</span>
+<span id="cb17-3"><a href="#cb17-3"></a></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="co"># Salvar em parquet</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"COPY 'nyc-taxi' TO '../data/nyc-taxi.parquet' (FORMAT PARQUET);"</span>)</span>
+<span id="cb17-6"><a href="#cb17-6"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <ul>
 <li><code>parquet</code>:</li>
 </ul>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
-<span id="cb16-2"><a href="#cb16-2"></a>DBI<span class="sc">::</span><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM read_parquet('../data/nyc-taxi.parquet') LIMIT 2;"</span>) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb18-2"><a href="#cb18-2"></a>DBI<span class="sc">::</span><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM read_parquet('../data/nyc-taxi.parquet') LIMIT 2;"</span>) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 2 × 11
   id        vendor_id pickup_datetime     dropoff_datetime    passenger_count
@@ -588,7 +600,7 @@ Thiago Pires
 #   dropoff_longitude &lt;dbl&gt;, dropoff_latitude &lt;dbl&gt;, store_and_fwd_flag &lt;chr&gt;,
 #   trip_duration &lt;int&gt;</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="leitura-e-escrita-de-arquivos-em-diferentes-formatos-1" class="slide level2">
@@ -605,16 +617,16 @@ Thiago Pires
 <p><br>
 </p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
-<span id="cb20-2"><a href="#cb20-2"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"INSTALL json;"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb22-2"><a href="#cb22-2"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"INSTALL json;"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"LOAD json;"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"LOAD json;"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>[1] 0</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>DBI<span class="sc">::</span><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM read_json_auto('../data/example.json')"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>DBI<span class="sc">::</span><span class="fu">dbGetQuery</span>(con, <span class="st">"SELECT * FROM read_json_auto('../data/example.json')"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>    Name Age Occupation
 1  Mario  32    Plumber
@@ -622,29 +634,265 @@ Thiago Pires
 3   &lt;NA&gt;  NA       &lt;NA&gt;
 4 Bowser  NA      Koopa</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="funções" class="slide level2">
-<h2>Funções</h2>
+<h2><a href="https://duckdb.org/docs/sql/functions/overview">Funções</a></h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">repo =</span> <span class="fu">c</span>(<span class="st">"th1460/duckdb-ser"</span>))</span>
-<span id="cb27-2"><a href="#cb27-2"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
-<span id="cb27-3"><a href="#cb27-3"></a></span>
-<span id="cb27-4"><a href="#cb27-4"></a><span class="co"># registra o df como uma tabela virtual</span></span>
-<span id="cb27-5"><a href="#cb27-5"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_register</span>(con, <span class="st">"repos"</span>, df) </span>
-<span id="cb27-6"><a href="#cb27-6"></a></span>
-<span id="cb27-7"><a href="#cb27-7"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"repos"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb27-8"><a href="#cb27-8"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">extract =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"regexp_extract(repo, '[0-9]+')"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">repo =</span> <span class="fu">c</span>(<span class="st">"th1460/duckdb-ser"</span>),</span>
+<span id="cb29-2"><a href="#cb29-2"></a>                 <span class="at">start_date =</span> <span class="fu">c</span>(<span class="st">"1984-10-19"</span>) <span class="sc">|&gt;</span> <span class="fu">as.Date</span>())</span>
+<span id="cb29-3"><a href="#cb29-3"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb29-4"><a href="#cb29-4"></a></span>
+<span id="cb29-5"><a href="#cb29-5"></a><span class="co"># Registra o df como uma tabela virtual (view)</span></span>
+<span id="cb29-6"><a href="#cb29-6"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_register</span>(con, <span class="st">"functions"</span>, df) </span>
+<span id="cb29-7"><a href="#cb29-7"></a></span>
+<span id="cb29-8"><a href="#cb29-8"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"functions"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-9"><a href="#cb29-9"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">extract =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"regexp_extract(repo, '[0-9]+')"</span>),</span>
+<span id="cb29-10"><a href="#cb29-10"></a>                <span class="at">weeks =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"datediff('week', start_date, today())"</span>),</span>
+<span id="cb29-11"><a href="#cb29-11"></a>                <span class="at">pi =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"pi()"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># Source:   SQL [1 x 2]
+<pre><code># Source:   SQL [1 x 5]
 # Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/:memory:]
-  repo              extract
-  &lt;chr&gt;             &lt;chr&gt;  
-1 th1460/duckdb-ser 1460   </code></pre>
+  repo              start_date extract weeks    pi
+  &lt;chr&gt;             &lt;date&gt;     &lt;chr&gt;   &lt;dbl&gt; &lt;dbl&gt;
+1 th1460/duckdb-ser 1984-10-19 1460     2011  3.14</code></pre>
 </div>
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+</section>
+<section id="casos-de-uso-text-mining" class="slide level2">
+<h2>Casos de uso: Text mining</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a>bible <span class="ot">&lt;-</span> readr<span class="sc">::</span><span class="fu">read_lines</span>(<span class="fu">url</span>(<span class="st">"https://www.o-bible.com/download/kjv.txt"</span>), <span class="at">skip =</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a>  dplyr<span class="sc">::</span><span class="fu">as_tibble</span>()</span>
+<span id="cb32-3"><a href="#cb32-3"></a></span>
+<span id="cb32-4"><a href="#cb32-4"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb32-5"><a href="#cb32-5"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_register</span>(con, <span class="st">"bible"</span>, bible)</span>
+<span id="cb32-6"><a href="#cb32-6"></a>(words <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"bible"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb32-7"><a href="#cb32-7"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">book =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"regexp_extract(regexp_extract(value, '</span><span class="sc">\\</span><span class="st">w+</span><span class="sc">\\</span><span class="st">d+</span><span class="sc">\\</span><span class="st">:</span><span class="sc">\\</span><span class="st">d+'), '[A-Za-z]+')"</span>),</span>
+<span id="cb32-8"><a href="#cb32-8"></a>                <span class="at">text =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"lcase(trim(regexp_replace(value, '</span><span class="sc">\\</span><span class="st">w+</span><span class="sc">\\</span><span class="st">d+</span><span class="sc">\\</span><span class="st">:</span><span class="sc">\\</span><span class="st">d+|</span><span class="sc">\\</span><span class="st">;|</span><span class="sc">\\</span><span class="st">,|</span><span class="sc">\\</span><span class="st">.|</span><span class="sc">\\</span><span class="st">:', '', 'g')))"</span>),</span>
+<span id="cb32-9"><a href="#cb32-9"></a>                <span class="at">word =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"regexp_split_to_array(text, '</span><span class="sc">\\</span><span class="st">s')"</span>),</span>
+<span id="cb32-10"><a href="#cb32-10"></a>                <span class="at">word_clean =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"list_filter(word, x -&gt; NOT regexp_matches(x, 'in|the|and'))"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb32-11"><a href="#cb32-11"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(book, text, word, word_clean) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">1</span>) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">as_tibble</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 4
+  book  text                                                  word   word_clean
+  &lt;chr&gt; &lt;chr&gt;                                                 &lt;list&gt; &lt;list&gt;    
+1 Ge    in the beginning god created the heaven and the earth &lt;chr&gt;  &lt;chr [4]&gt; </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1"></a>words<span class="sc">$</span>word</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+ [1] "in"        "the"       "beginning" "god"       "created"   "the"      
+ [7] "heaven"    "and"       "the"       "earth"    </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1"></a>words<span class="sc">$</span>word_clean</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[[1]]
+[1] "god"     "created" "heaven"  "earth"  </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="casos-de-uso-dados-de-covid-19" class="slide level2">
+<h2>Casos de uso: Dados de COVID 19</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv"</span></span>
+<span id="cb39-2"><a href="#cb39-2"></a></span>
+<span id="cb39-3"><a href="#cb39-3"></a><span class="fu">read.csv</span>(url, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-4"><a href="#cb39-4"></a>  dplyr<span class="sc">::</span><span class="fu">as_tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 289 × 1,147
+   Province.State         Country.Region   Lat   Long X1.22.20 X1.23.20 X1.24.20
+   &lt;chr&gt;                  &lt;chr&gt;          &lt;dbl&gt;  &lt;dbl&gt;    &lt;int&gt;    &lt;int&gt;    &lt;int&gt;
+ 1 ""                     Afghanistan     33.9  67.7         0        0        0
+ 2 ""                     Albania         41.2  20.2         0        0        0
+ 3 ""                     Algeria         28.0   1.66        0        0        0
+ 4 ""                     Andorra         42.5   1.52        0        0        0
+ 5 ""                     Angola         -11.2  17.9         0        0        0
+ 6 ""                     Antarctica     -71.9  23.3         0        0        0
+ 7 ""                     Antigua and B…  17.1 -61.8         0        0        0
+ 8 ""                     Argentina      -38.4 -63.6         0        0        0
+ 9 ""                     Armenia         40.1  45.0         0        0        0
+10 "Australian Capital T… Australia      -35.5 149.          0        0        0
+# ℹ 279 more rows
+# ℹ 1,140 more variables: X1.25.20 &lt;int&gt;, X1.26.20 &lt;int&gt;, X1.27.20 &lt;int&gt;,
+#   X1.28.20 &lt;int&gt;, X1.29.20 &lt;int&gt;, X1.30.20 &lt;int&gt;, X1.31.20 &lt;int&gt;,
+#   X2.1.20 &lt;int&gt;, X2.2.20 &lt;int&gt;, X2.3.20 &lt;int&gt;, X2.4.20 &lt;int&gt;, X2.5.20 &lt;int&gt;,
+#   X2.6.20 &lt;int&gt;, X2.7.20 &lt;int&gt;, X2.8.20 &lt;int&gt;, X2.9.20 &lt;int&gt;, X2.10.20 &lt;int&gt;,
+#   X2.11.20 &lt;int&gt;, X2.12.20 &lt;int&gt;, X2.13.20 &lt;int&gt;, X2.14.20 &lt;int&gt;,
+#   X2.15.20 &lt;int&gt;, X2.16.20 &lt;int&gt;, X2.17.20 &lt;int&gt;, X2.18.20 &lt;int&gt;, …</code></pre>
+</div>
+</div>
+</section>
+<section id="casos-de-uso-dados-de-covid-19-1" class="slide level2">
+<h2>Casos de uso: Dados de COVID 19</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1"></a><span class="co"># https://github.com/duckdb/duckdb/pull/6387 (0.8.0)</span></span>
+<span id="cb41-2"><a href="#cb41-2"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb41-3"><a href="#cb41-3"></a>duckdb<span class="sc">::</span><span class="fu">duckdb_register</span>(con, <span class="st">"covid19"</span>, <span class="fu">read.csv</span>(url, <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>))</span>
+<span id="cb41-4"><a href="#cb41-4"></a></span>
+<span id="cb41-5"><a href="#cb41-5"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"(PIVOT_LONGER covid19 ON COLUMNS('X') INTO NAME date VALUE cumulate)"</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb41-6"><a href="#cb41-6"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(<span class="at">country =</span> Country.Region, date, cumulate) <span class="sc">|&gt;</span></span>
+<span id="cb41-7"><a href="#cb41-7"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">date =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"strptime(replace(date, 'X', ''), '%m.%d.%y')"</span>),</span>
+<span id="cb41-8"><a href="#cb41-8"></a>                <span class="at">value =</span> cumulate <span class="sc">-</span> dplyr<span class="sc">::</span><span class="fu">lag</span>(cumulate)) <span class="sc">|&gt;</span></span>
+<span id="cb41-9"><a href="#cb41-9"></a>  dplyr<span class="sc">::</span><span class="fu">filter</span>(date <span class="sc">&gt;</span> <span class="st">"2020-02-23"</span>) <span class="sc">|&gt;</span> <span class="fu">head</span>(<span class="dv">3</span>)</span>
+<span id="cb41-10"><a href="#cb41-10"></a>  </span>
+<span id="cb41-11"><a href="#cb41-11"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<pre><code># Source:   SQL [3 x 4]
+# Database: DuckDB 0.7.2-dev2706 [root@Darwin 22.4.0:R 4.2.3/:memory:]
+  country     date                cumulate value
+  &lt;chr&gt;       &lt;dttm&gt;                 &lt;int&gt; &lt;int&gt;
+1 Afghanistan 2020-02-24 00:00:00        5     5
+2 Afghanistan 2020-02-25 00:00:00        5     0
+3 Afghanistan 2020-02-26 00:00:00        5     0</code></pre>
+</section>
+<section id="lendo-dados-do-s3-cos-ibm" class="slide level2">
+<h2>Lendo dados do S3 (COS IBM)</h2>
+<p>Neste exemplo será usado o <em>Cloud Object Storage</em> (COS) da IBM para armazenar um conjunto de dados em <code>parquet</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1"></a><span class="fu">readRenviron</span>(<span class="st">".Renviron"</span>)</span>
+<span id="cb43-2"><a href="#cb43-2"></a></span>
+<span id="cb43-3"><a href="#cb43-3"></a>con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb43-4"><a href="#cb43-4"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"INSTALL httpfs;"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"LOAD httpfs;"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_region='{Sys.getenv('S3_REGION')}';"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb49-1"><a href="#cb49-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_endpoint='{Sys.getenv('S3_ENDPOINT')}';"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_access_key_id='{Sys.getenv('S3_ACCESS_KEY_ID')}';"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_secret_access_key='{Sys.getenv('S3_SECRET_ACCESS_KEY')}';"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0</code></pre>
+</div>
+</div>
+</section>
+<section id="lendo-dados-do-s3-cos-ibm-1" class="slide level2">
+<h2>Lendo dados do S3 (COS IBM)</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1"></a>dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"s3://duckdb-ser/nyc-taxi.parquet"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Source:   table&lt;s3://duckdb-ser/nyc-taxi.parquet&gt; [?? x 11]
+# Database: DuckDB 0.7.1 [root@Darwin 22.4.0:R 4.2.3/:memory:]
+   id        vendor_id pickup_datetime     dropoff_datetime    passenger_count
+   &lt;chr&gt;         &lt;int&gt; &lt;chr&gt;               &lt;chr&gt;                         &lt;int&gt;
+ 1 id2875421         2 2016-03-14 17:24:55 2016-03-14 17:32:30               1
+ 2 id2377394         1 2016-06-12 00:43:35 2016-06-12 00:54:38               1
+ 3 id3858529         2 2016-01-19 11:35:24 2016-01-19 12:10:48               1
+ 4 id3504673         2 2016-04-06 19:32:31 2016-04-06 19:39:40               1
+ 5 id2181028         2 2016-03-26 13:30:55 2016-03-26 13:38:10               1
+ 6 id0801584         2 2016-01-30 22:01:40 2016-01-30 22:09:03               6
+ 7 id1813257         1 2016-06-17 22:34:59 2016-06-17 22:40:40               4
+ 8 id1324603         2 2016-05-21 07:54:58 2016-05-21 08:20:49               1
+ 9 id1301050         1 2016-05-27 23:12:23 2016-05-27 23:16:38               1
+10 id0012891         2 2016-03-10 21:45:01 2016-03-10 22:05:26               1
+# ℹ more rows
+# ℹ 6 more variables: pickup_longitude &lt;dbl&gt;, pickup_latitude &lt;dbl&gt;,
+#   dropoff_longitude &lt;dbl&gt;, dropoff_latitude &lt;dbl&gt;, store_and_fwd_flag &lt;chr&gt;,
+#   trip_duration &lt;int&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1"></a>duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="dados-espaciais" class="slide level2">
+<h2>Dados espaciais</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb58-1"><a href="#cb58-1"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"INSTALL spatial;"</span>)</span>
+<span id="cb58-2"><a href="#cb58-2"></a>DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"LOAD spatial;"</span>)</span>
+<span id="cb58-3"><a href="#cb58-3"></a></span>
+<span id="cb58-4"><a href="#cb58-4"></a>nyc_taxi_spatial <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"s3://duckdb-ser/nyc-taxi.parquet"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb58-5"><a href="#cb58-5"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">pickup_point =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"ST_Transform(ST_Point(pickup_latitude, pickup_longitude), 'EPSG:4326', 'ESRI:102718')"</span>),</span>
+<span id="cb58-6"><a href="#cb58-6"></a>                <span class="at">dropoff_point =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"ST_Transform(ST_Point(dropoff_latitude, dropoff_longitude), 'EPSG:4326', 'ESRI:102718')"</span>),</span>
+<span id="cb58-7"><a href="#cb58-7"></a>                <span class="at">aerial_distance =</span> dplyr<span class="sc">::</span><span class="fu">sql</span>(<span class="st">"ST_Distance(pickup_point, dropoff_point)/3280.84"</span>)) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">as_tibble</span>()</span>
+<span id="cb58-8"><a href="#cb58-8"></a></span>
+<span id="cb58-9"><a href="#cb58-9"></a>nyc_taxi_spatial <span class="sc">|&gt;</span> </span>
+<span id="cb58-10"><a href="#cb58-10"></a>  dplyr<span class="sc">::</span><span class="fu">select</span>(pickup_longitude, pickup_latitude, dropoff_longitude, dropoff_latitude, aerial_distance) <span class="sc">|&gt;</span> </span>
+<span id="cb58-11"><a href="#cb58-11"></a>  dplyr<span class="sc">::</span><span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb58-12"><a href="#cb58-12"></a>  tidyr<span class="sc">::</span><span class="fu">pivot_longer</span>(tidyr<span class="sc">::</span><span class="fu">everything</span>()) <span class="sc">|&gt;</span> </span>
+<span id="cb58-13"><a href="#cb58-13"></a>  dplyr<span class="sc">::</span><span class="fu">mutate</span>(<span class="at">value =</span> tibble<span class="sc">::</span><span class="fu">num</span>(value, <span class="at">digits =</span> <span class="dv">5</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="columns">
+<div class="column" style="width:40%;">
+<pre><code># A tibble: 5 × 2
+  name                  value
+  &lt;chr&gt;             &lt;num:.5!&gt;
+1 pickup_longitude  -73.98215
+2 pickup_latitude    40.76794
+3 dropoff_longitude -73.96463
+4 dropoff_latitude   40.76560
+5 aerial_distance     1.50216</code></pre>
+</div><div class="column" style="width:60%;">
+<div class="cell">
+<div class="cell-output-display">
+<div id="htmlwidget-bacfe6bae38915c98af4" style="width:800px;height:300px;" class="leaflet html-widget "></div>
+<script type="application/json" data-for="htmlwidget-bacfe6bae38915c98af4">{"x":{"options":{"crs":{"crsClass":"L.CRS.EPSG3857","code":null,"proj4def":null,"projectedBounds":null,"options":{}}},"setView":[[40.7669315,-73.9759986],14,[]],"calls":[{"method":"addTiles","args":["https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",null,null,{"minZoom":0,"maxZoom":18,"tileSize":256,"subdomains":"abc","errorTileUrl":"","tms":false,"noWrap":false,"zoomOffset":0,"zoomReverse":false,"opacity":1,"zIndex":1,"detectRetina":false,"attribution":"&copy; <a href=\"https://openstreetmap.org\">OpenStreetMap<\/a> contributors, <a href=\"https://creativecommons.org/licenses/by-sa/2.0/\">CC-BY-SA<\/a>"}]},{"method":"addMarkers","args":[40.76794,-73.98215,null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},"Pickup",null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addMarkers","args":[40.7656,-73.96463,null,null,null,{"interactive":true,"draggable":false,"keyboard":true,"title":"","alt":"","zIndexOffset":0,"opacity":1,"riseOnHover":false,"riseOffset":250},"Dropoff",null,null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]},{"method":"addPolylines","args":[[[[{"lng":[-73.98215,-73.96463],"lat":[40.76794,40.7656]}]]],null,null,{"interactive":true,"className":"","stroke":true,"color":"#03F","weight":5,"opacity":0.5,"fill":false,"fillColor":"#03F","fillOpacity":0.2,"smoothFactor":1,"noClip":false},null,null,null,{"interactive":false,"permanent":false,"direction":"auto","opacity":1,"offset":[0,0],"textsize":"10px","textOnly":false,"className":"","sticky":true},null]}],"limits":{"lat":[40.7656,40.76794],"lng":[-73.98215,-73.96463]}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="um-banco-embarcado" class="slide level2">
+<h2>Um banco embarcado</h2>
+<h3 id="exemplo-de-uma-api-com-plumber">Exemplo de uma API com plumber</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb60-1"><a href="#cb60-1"></a><span class="co">#* Mostrar informações segundo ID</span></span>
+<span id="cb60-2"><a href="#cb60-2"></a><span class="co">#* @param id</span></span>
+<span id="cb60-3"><a href="#cb60-3"></a><span class="co">#* @get /info</span></span>
+<span id="cb60-4"><a href="#cb60-4"></a><span class="cf">function</span>(id) {</span>
+<span id="cb60-5"><a href="#cb60-5"></a>    <span class="co"># Ler variáveis de ambiente</span></span>
+<span id="cb60-6"><a href="#cb60-6"></a>    <span class="fu">readRenviron</span>(<span class="st">"../.Renviron"</span>)</span>
+<span id="cb60-7"><a href="#cb60-7"></a></span>
+<span id="cb60-8"><a href="#cb60-8"></a>    <span class="co"># Criar conexão com o banco</span></span>
+<span id="cb60-9"><a href="#cb60-9"></a>    con <span class="ot">&lt;-</span> duckdb<span class="sc">::</span><span class="fu">dbConnect</span>(duckdb<span class="sc">::</span><span class="fu">duckdb</span>(), <span class="st">":memory:"</span>)</span>
+<span id="cb60-10"><a href="#cb60-10"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"INSTALL httpfs;"</span>))</span>
+<span id="cb60-11"><a href="#cb60-11"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, <span class="st">"LOAD httpfs;"</span>))</span>
+<span id="cb60-12"><a href="#cb60-12"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_region='{Sys.getenv('S3_REGION')}';"</span>)))</span>
+<span id="cb60-13"><a href="#cb60-13"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_endpoint='{Sys.getenv('S3_ENDPOINT')}';"</span>)))</span>
+<span id="cb60-14"><a href="#cb60-14"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_access_key_id='{Sys.getenv('S3_ACCESS_KEY_ID')}';"</span>)))</span>
+<span id="cb60-15"><a href="#cb60-15"></a>    <span class="fu">invisible</span>(DBI<span class="sc">::</span><span class="fu">dbExecute</span>(con, glue<span class="sc">::</span><span class="fu">glue</span>(<span class="st">"SET s3_secret_access_key='{Sys.getenv('S3_SECRET_ACCESS_KEY')}';"</span>)))</span>
+<span id="cb60-16"><a href="#cb60-16"></a></span>
+<span id="cb60-17"><a href="#cb60-17"></a>    <span class="co"># Consulta</span></span>
+<span id="cb60-18"><a href="#cb60-18"></a>    resposta <span class="ot">&lt;-</span> dplyr<span class="sc">::</span><span class="fu">tbl</span>(con, <span class="st">"s3://duckdb-ser/nyc-taxi.parquet"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb60-19"><a href="#cb60-19"></a>        dplyr<span class="sc">::</span><span class="fu">filter</span>(id <span class="sc">==</span> input) <span class="sc">|&gt;</span> dplyr<span class="sc">::</span><span class="fu">as_tibble</span>() <span class="sc">|&gt;</span> <span class="fu">as.data.frame</span>()</span>
+<span id="cb60-20"><a href="#cb60-20"></a></span>
+<span id="cb60-21"><a href="#cb60-21"></a>    duckdb<span class="sc">::</span><span class="fu">dbDisconnect</span>(con, <span class="at">shutdown =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb60-22"><a href="#cb60-22"></a></span>
+<span id="cb60-23"><a href="#cb60-23"></a>    <span class="co"># Resultado</span></span>
+<span id="cb60-24"><a href="#cb60-24"></a>    <span class="fu">return</span>(jsonlite<span class="sc">::</span><span class="fu">toJSON</span>(resposta))</span>
+<span id="cb60-25"><a href="#cb60-25"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="um-banco-embarcado-1" class="slide level2">
+<h2>Um banco embarcado</h2>
+<h3 id="resposta-da-api">Resposta da API</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb61-1"><a href="#cb61-1"></a>httr<span class="sc">::</span><span class="fu">GET</span>(<span class="st">"http://127.0.0.1:5830/info?id=id2875421"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb61-2"><a href="#cb61-2"></a>  httr<span class="sc">::</span><span class="fu">content</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb61-3"><a href="#cb61-3"></a>  jsonlite<span class="sc">::</span><span class="fu">toJSON</span>(<span class="at">auto_unbox =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>["[{\"id\":\"id2875421\",\"vendor_id\":2,\"pickup_datetime\":\"2016-03-14 17:24:55\",\"dropoff_datetime\":\"2016-03-14 17:32:30\",\"passenger_count\":1,\"pickup_longitude\":-73.9822,\"pickup_latitude\":40.7679,\"dropoff_longitude\":-73.9646,\"dropoff_latitude\":40.7656,\"store_and_fwd_flag\":\"N\",\"trip_duration\":455}]"] </code></pre>
+</div>
+</div>
+</section>
+<section id="obrigado" class="slide level2">
+<h2>Obrigado</h2>
+<h3 id="contato">Contato</h3>
+<p><a href="https://th1460.github.io/">th1460.github.io</a><br> <a href="https://github.com/">github.com/th1460</a><br> <a href="https://medium.com/@thopr">medium.com/<span class="citation" data-cites="thopr">@thopr</span></a><br> <a href="https://www.linkedin.com/in/thop">linkedin.com/in/thop</a><br><br></p>
 <div class="footer footer-default">
 <p><a href="https://github.com/th1460/duckdb-ser">github.com/th1460/duckdb-ser</a></p>
 </div>
